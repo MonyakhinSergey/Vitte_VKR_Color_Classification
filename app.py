@@ -1,25 +1,16 @@
-# -*- coding: utf-8 -*-
-"""
-app.py — Интеллектуальный кредитный калькулятор
-"""
-
-# ── автозапуск через stcli / runtime ─────────────────────────
-from streamlit.web import cli as stcli
-import sys
-from streamlit import runtime
-
-# ── стандартные импорты ──────────────────────────────────────
 import streamlit as st
+from tensorflow.keras.models import load_model
+from tensorflow.keras.preprocessing import image
+import numpy as np
+import os
+import sqlite3
 import pandas as pd
-import joblib
-from pathlib import Path
-from math import pow, ceil
-from catboost import CatBoostClassifier, Pool, CatBoostError
-import seaborn as sns
-import warnings
+from PIL import Image
 
-warnings.filterwarnings("ignore")
-sns.set_style("whitegrid")
+# Загрузка модели
+MODEL_PATH = "modified_model.h5"
+model = load_model(MODEL_PATH)
 
-# ── увеличиваем лимит для Pandas Styler, чтобы окрашивать строки ──
-pd.set_option("styler.render.max_elements", 10**7)
+# Классы цветов
+class_labels = ['black', 'blue', 'brown', 'green', 'grey', 'orange', 
+                'pink', 'purple', 'red', 'silver', 'white', 'yellow']
