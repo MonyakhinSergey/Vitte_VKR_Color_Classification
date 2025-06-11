@@ -274,3 +274,37 @@ def create_baseline_model(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), classes=num_cl
 baseline_model = create_baseline_model()
 baseline_model.summary()
 plot_model(baseline_model, to_file='baseline_model.png', show_shapes=True)
+
+# Предобученная (Pretrained) модель MobileNetV2
+
+# В этом блоке мы определим вторую модель (Pretrained), например, на основе MobileNetV2. Включим глобальный pooling и финальные Dense-слои. Входные изображения нужно пропускать через функцию mobilenet_preprocess, поэтому создадим ещё один генератор или добавим шаг препроцессинга.
+
+base_mobilenet = MobileNetV2(weights='imagenet', include_top=False, input_shape=(IMG_HEIGHT, IMG_WIDTH, 3))
+base_mobilenet.trainable = False  # Замораживаем базовые слои
+
+def create_pretrained_model(base_model, classes=num_classes):
+    # Входная модель (предобученная)
+    x = layers.GlobalAveragePooling2D()(base_model.output)
+    x = layers.Dense(256, activation='relu')(x)
+    x = layers.BatchNormalization()(x)  # Исправлено: корректный вызов BatchNormalization
+    x = layers.Dropout(0.5)(x)
+    x = layers.Dense(128, activation='relu')(x)
+    x = layers.BatchNormalization()(x)  # Исправлено
+    x = layers.Dropout(0.3)(x)
+    output = layers.Dense(classes, activation='softmax')(x)
+
+    # Создаём модель
+    model = tf.keras.Model(inputs=base_model.input, outputs=output)
+
+    # Компиляция модели
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
+
+    return model
+
+pretrained_model = create_pretrained_model(base_mobilenet)
+pretrained_model.summary()
+plot_model(pretrained_model, to_file='pretrained_model.png', show_shapes=True)
