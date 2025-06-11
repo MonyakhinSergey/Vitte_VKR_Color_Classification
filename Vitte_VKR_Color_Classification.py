@@ -382,3 +382,109 @@ def visualize_model_architecture(model):
 
 # Визуализация архитектуры
 visualize_model_architecture(modified_model)
+
+# Обучение и оценка всех моделей, сбор результатов
+EPOCHS = 20
+
+history_dict = {}  # здесь будем хранить истории обучения
+results_df = pd.DataFrame(columns=['Model', 'ValAccuracy', 'ValLoss', 'TestAccuracy', 'Precision', 'Recall', 'F1'])
+
+# ========== Baseline ==========
+baseline_model = create_baseline_model()
+hist_baseline = baseline_model.fit(
+    train_generator,
+    validation_data=val_generator,
+    epochs=EPOCHS,
+    verbose=1
+)
+history_dict['Baseline'] = hist_baseline
+
+# Оценим на валидации
+val_loss_b, val_acc_b = baseline_model.evaluate(val_generator, verbose=0)
+
+# Оценим на тесте
+test_loss_b, test_acc_b = baseline_model.evaluate(test_generator, verbose=0)
+
+# Предсказания для precision/recall/f1
+y_pred_b = np.argmax(baseline_model.predict(test_generator), axis=1)
+y_true_b = test_generator.classes
+precision_b = precision_score(y_true_b, y_pred_b, average='macro')
+recall_b    = recall_score(y_true_b, y_pred_b, average='macro')
+f1_b        = f1_score(y_true_b, y_pred_b, average='macro')
+
+new_row = pd.DataFrame([{
+    'Model': 'Baseline',
+    'ValAccuracy': val_acc_b,
+    'ValLoss': val_loss_b,
+    'TestAccuracy': test_acc_b,
+    'Precision': precision_b,
+    'Recall': recall_b,
+    'F1': f1_b
+}])
+
+results_df = pd.concat([results_df, new_row], ignore_index=True)
+
+# ========== Pretrained ==========
+pretrained_model = create_pretrained_model(base_mobilenet)
+hist_pretrained = pretrained_model.fit(
+    train_generator,
+    validation_data=val_generator,
+    epochs=EPOCHS,
+    verbose=1
+)
+history_dict['Pretrained'] = hist_pretrained
+
+val_loss_p, val_acc_p = pretrained_model.evaluate(val_generator, verbose=0)
+test_loss_p, test_acc_p = pretrained_model.evaluate(test_generator, verbose=0)
+
+y_pred_p = np.argmax(pretrained_model.predict(test_generator), axis=1)
+y_true_p = test_generator.classes
+precision_p = precision_score(y_true_p, y_pred_p, average='macro')
+recall_p    = recall_score(y_true_p, y_pred_p, average='macro')
+f1_p        = f1_score(y_true_p, y_pred_p, average='macro')
+
+new_row = pd.DataFrame([{
+    'Model': 'Pretrained',
+    'ValAccuracy': val_acc_p,
+    'ValLoss': val_loss_p,
+    'TestAccuracy': test_acc_p,
+    'Precision': precision_p,
+    'Recall': recall_p,
+    'F1': f1_p
+}])
+
+results_df = pd.concat([results_df, new_row], ignore_index=True)
+
+# ========== Modified ==========
+modified_model = create_modified_model()
+hist_modified = modified_model.fit(
+    train_generator,
+    validation_data=val_generator,
+    epochs=EPOCHS,
+    verbose=1
+)
+history_dict['Modified'] = hist_modified
+
+val_loss_m, val_acc_m = modified_model.evaluate(val_generator, verbose=0)
+test_loss_m, test_acc_m = modified_model.evaluate(test_generator, verbose=0)
+
+y_pred_m = np.argmax(modified_model.predict(test_generator), axis=1)
+y_true_m = test_generator.classes
+precision_m = precision_score(y_true_m, y_pred_m, average='macro')
+recall_m    = recall_score(y_true_m, y_pred_m, average='macro')
+f1_m        = f1_score(y_true_m, y_pred_m, average='macro')
+
+new_row = pd.DataFrame([{
+    'Model': 'Modified',
+    'ValAccuracy': val_acc_m,
+    'ValLoss': val_loss_m,
+    'TestAccuracy': test_acc_m,
+    'Precision': precision_m,
+    'Recall': recall_m,
+    'F1': f1_m
+}])
+
+results_df = pd.concat([results_df, new_row], ignore_index=True)
+
+print("==== Окончательные результаты ====")
+display(results_df)
