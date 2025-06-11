@@ -40,3 +40,18 @@ def init_db():
             )
         """)
     print("База данных инициализирована.")
+
+def save_prediction(image_path, predicted_class, confidence):
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            INSERT INTO predictions (image_path, predicted_class, confidence)
+            VALUES (?, ?, ?)
+        """, (image_path, predicted_class, confidence))
+
+def load_predictions():
+    with sqlite3.connect(DB_PATH) as conn:
+        df = pd.read_sql("SELECT * FROM predictions", conn)
+    return df
+
+# Инициализация базы данных
+init_db()
