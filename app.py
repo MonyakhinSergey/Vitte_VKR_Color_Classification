@@ -91,3 +91,15 @@ def main():
               st.bar_chart(data.groupby("predicted_class").size())
           else:
               st.info("Статистика пока пуста. Сначала сделайте предсказания.")
+            
+# Запуск приложения
+if __name__ == '__main__':
+    from streamlit import runtime
+    import sys
+    from streamlit.web import cli as stcli
+
+    if runtime.exists():
+        main()
+    else:
+        sys.argv = ["streamlit", "run", sys.argv[0]]
+        sys.exit(stcli.main())
