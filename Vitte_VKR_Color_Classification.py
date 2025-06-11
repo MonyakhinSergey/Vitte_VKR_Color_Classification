@@ -537,3 +537,7 @@ sns.barplot(data=results_df, x='Model', y='F1')
 plt.title("Сравнение F1-меры на тесте")
 plt.ylim([0, 1])
 plt.show()
+
+# Сохранение модели в файл .h5
+modified_model.save('modified_model.h5')
+print("Модель сохранена в файл modified_model.h5")
