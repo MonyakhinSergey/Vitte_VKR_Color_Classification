@@ -238,3 +238,39 @@ for i in range(4):
     axes[i].axis('off')
 plt.suptitle("Примеры изображений после предобработки/аугментации")
 plt.show()
+
+# 3. Базовая (Baseline) модель
+
+# В этом блоке мы определим нашу базовую модель (Baseline): простую CNN без всяких ухищрений, чтобы потом сравнить её с остальными. После определения модели выведем её архитектуру и сохраним схему.
+
+num_classes = len(class_indices)  # Количество классов (цветов)
+
+# 1. Базовая модель
+def create_baseline_model(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), classes=num_classes):
+    model = models.Sequential([
+        layers.Conv2D(64, (3, 3), activation='relu', input_shape=input_shape),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),
+
+        layers.Conv2D(128, (3, 3), activation='relu'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),
+
+        layers.Conv2D(256, (3, 3), activation='relu'),
+        layers.BatchNormalization(),
+        layers.MaxPooling2D((2, 2)),
+        layers.Dropout(0.25),
+
+        layers.Flatten(),
+        layers.Dense(256, activation='relu'),
+        layers.Dropout(0.5),
+        layers.Dense(classes, activation='softmax')
+    ])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+baseline_model = create_baseline_model()
+baseline_model.summary()
+plot_model(baseline_model, to_file='baseline_model.png', show_shapes=True)
