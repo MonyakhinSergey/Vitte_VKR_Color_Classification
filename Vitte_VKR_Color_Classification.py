@@ -28,3 +28,19 @@ print("TensorFlow version:", tf.__version__)
 # Устанавливаем некоторый параметр для отображения графиков
 plt.rcParams['figure.figsize'] = (8, 6)
 sns.set_style("whitegrid")
+
+# Загружаем *.json-файл
+from google.colab import files
+files.upload()
+
+# Создаем директорию для конфигурационного файла
+!mkdir -p ~/.kaggle
+
+# Перемещаем загруженный файл kaggle.json в созданную директорию
+!cp kaggle.json ~/.kaggle/
+
+# Устанавливаем необходимые права доступа
+!chmod 600 ~/.kaggle/kaggle.json
+
+# Проверяем, что Kaggle API настроен корректно
+!kaggle datasets list
