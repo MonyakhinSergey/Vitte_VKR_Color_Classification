@@ -55,3 +55,7 @@ def load_predictions():
 
 # Инициализация базы данных
 init_db()
+
+# Streamlit-приложение
+def main():
+    pass
