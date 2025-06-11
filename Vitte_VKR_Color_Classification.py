@@ -124,3 +124,100 @@ for folder in os.listdir(combined_path):
         print(f"Удалена папка: {folder_path}")
 
 print("Формирование датасета завершено. Оставлены только папки с названиями цветов.")
+
+import os
+import random
+import shutil
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+# Пути к основным директориям
+base_dir = 'datasets/combined_dataset'
+train_dir = os.path.join(base_dir, 'train')
+val_dir = os.path.join(base_dir, 'val')
+test_dir = os.path.join(base_dir, 'test')
+
+# Удаляем старые директории, если они существуют, и создаем новые
+for directory in [train_dir, val_dir, test_dir]:
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    os.makedirs(directory)
+
+# Получаем только папки с цветами, исключая скрытые системные файлы
+color_classes = [folder for folder in os.listdir(base_dir)
+                 if os.path.isdir(os.path.join(base_dir, folder)) and not folder.startswith('.')]
+
+# Перераспределение данных: 70% - train, 20% - val, 10% - test
+for color in color_classes:
+    class_path = os.path.join(base_dir, color)
+    images = [img for img in os.listdir(class_path) if not img.startswith('.') and os.path.isfile(os.path.join(class_path, img))]
+    random.shuffle(images)
+
+    # Вычисляем количество данных для каждой выборки
+    num_images = len(images)
+    num_train = int(num_images * 0.7)
+    num_val = int(num_images * 0.2)
+
+    # Разделяем данные
+    train_images = images[:num_train]
+    val_images = images[num_train:num_train + num_val]
+    test_images = images[num_train + num_val:]
+
+    # Создаем директории для текущего класса
+    os.makedirs(os.path.join(train_dir, color), exist_ok=True)
+    os.makedirs(os.path.join(val_dir, color), exist_ok=True)
+    os.makedirs(os.path.join(test_dir, color), exist_ok=True)
+
+    # Перемещаем изображения
+    for img in train_images:
+        shutil.copy(os.path.join(class_path, img), os.path.join(train_dir, color, img))
+    for img in val_images:
+        shutil.copy(os.path.join(class_path, img), os.path.join(val_dir, color, img))
+    for img in test_images:
+        shutil.copy(os.path.join(class_path, img), os.path.join(test_dir, color, img))
+
+print("Данные успешно распределены по выборкам.")
+
+# Параметры изображений и размер батча
+IMG_HEIGHT = 227
+IMG_WIDTH = 227
+BATCH_SIZE = 32
+
+# Создаем генераторы данных
+train_datagen = ImageDataGenerator(
+    rescale=1.0 / 255,
+    rotation_range=10,
+    width_shift_range=0.1,
+    height_shift_range=0.1,
+    horizontal_flip=True
+)
+
+val_test_datagen = ImageDataGenerator(rescale=1.0 / 255)
+
+# Генератор для обучающих данных
+train_generator = train_datagen.flow_from_directory(
+    train_dir,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+)
+
+# Генератор для валидационных данных
+val_generator = val_test_datagen.flow_from_directory(
+    val_dir,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+)
+
+# Генератор для тестовых данных
+test_generator = val_test_datagen.flow_from_directory(
+    test_dir,
+    target_size=(IMG_HEIGHT, IMG_WIDTH),
+    batch_size=BATCH_SIZE,
+    class_mode="categorical",
+    shuffle=False,
+)
+
+# Печать классов для проверки
+print("Классы в обучающих данных:", train_generator.class_indices)
+print("Классы в тестовых данных:", test_generator.class_indices)
