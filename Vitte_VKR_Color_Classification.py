@@ -308,3 +308,57 @@ def create_pretrained_model(base_model, classes=num_classes):
 pretrained_model = create_pretrained_model(base_mobilenet)
 pretrained_model.summary()
 plot_model(pretrained_model, to_file='pretrained_model.png', show_shapes=True)
+
+# Модифицированная (Modified) модель
+
+# В этом блоке мы определим модифицированную модель (Modified). Допустим, мы добавим skip-коннекты или, например, attention-модуль или двуглавую структуру. Для наглядности сделаем нечто чуть более сложное, чем Baseline: добавим боковую ветвь и объединим. Это очень условный пример, но демонстрирует идею.
+
+def create_modified_model(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), classes=num_classes):
+    inputs = layers.Input(shape=input_shape)
+
+    # Основная ветвь A
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(inputs)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+
+    # Боковая ветвь B (Skip Connection)
+    y = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(inputs)
+    y = layers.BatchNormalization()(y)
+    y = layers.MaxPooling2D((2, 2))(y)
+    y = layers.Conv2D(128, (3, 3), activation='relu', padding='same')(y)
+    y = layers.BatchNormalization()(y)
+    y = layers.GlobalAveragePooling2D()(y)
+
+    # Проверяем размерности ветвей для объединения
+    x = layers.Conv2D(256, (3, 3), activation='relu', padding='same')(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.MaxPooling2D((2, 2))(x)
+    x = layers.Flatten()(x)
+
+    # Убедимся, что размеры совместимы перед объединением
+    x_shape = tf.keras.backend.int_shape(x)
+    y_shape = tf.keras.backend.int_shape(y)
+    if len(x_shape) != len(y_shape):
+        y = layers.Reshape((1,))(y)  # Приведение y к совместимой форме
+
+    concat = layers.concatenate([x, y])
+
+    # Несколько Dense-слоёв после concat
+    fc = layers.Dense(256, activation='relu')(concat)
+    fc = layers.BatchNormalization()(fc)
+    fc = layers.Dropout(0.5)(fc)
+    fc = layers.Dense(128, activation='relu')(fc)
+    fc = layers.Dropout(0.3)(fc)
+    outputs = layers.Dense(classes, activation='softmax')(fc)
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+modified_model = create_modified_model()
+modified_model.summary()
+
+
