@@ -83,3 +83,11 @@ def main():
             # Сохранение предсказания в БД
             save_prediction(temp_path, predicted_class, confidence)
             st.info("Результат сохранен в базе данных.")
+  elif menu == "Просмотреть статистику":
+          st.header("Статистика предсказаний")
+          data = load_predictions()
+          if not data.empty:
+              st.dataframe(data)
+              st.bar_chart(data.groupby("predicted_class").size())
+          else:
+              st.info("Статистика пока пуста. Сначала сделайте предсказания.")
