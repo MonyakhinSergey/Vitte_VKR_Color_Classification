@@ -361,4 +361,24 @@ def create_modified_model(input_shape=(IMG_HEIGHT, IMG_WIDTH, 3), classes=num_cl
 modified_model = create_modified_model()
 modified_model.summary()
 
+# Альтернативный способ визуализации структуры модели
+for i, layer in enumerate(modified_model.layers):
+    output_shape = getattr(layer, 'output_shape', 'N/A')  # Проверяем наличие атрибута
+    print(f"Layer {i}: {layer.name}, Output Shape: {output_shape}")
 
+!pip install graphviz
+from graphviz import Digraph
+
+def visualize_model_architecture(model):
+    dot = Digraph(comment='Model Architecture')
+    for i, layer in enumerate(model.layers):
+        layer_name = layer.name
+        output_shape = getattr(layer, 'output_shape', 'N/A')
+        dot.node(f'Layer_{i}', f"{layer_name}\nOutput Shape: {output_shape}")
+        if i > 0:
+            dot.edge(f'Layer_{i-1}', f'Layer_{i}')
+    dot.render('model_architecture', format='png', cleanup=True)
+    return dot
+
+# Визуализация архитектуры
+visualize_model_architecture(modified_model)
