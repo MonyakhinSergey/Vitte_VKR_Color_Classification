@@ -488,3 +488,52 @@ results_df = pd.concat([results_df, new_row], ignore_index=True)
 
 print("==== Окончательные результаты ====")
 display(results_df)
+
+# Визуализация обучения и сравнение
+# В этом блоке мы визуализируем кривые обучения (loss и accuracy) для каждой из трёх моделей, а затем строим сравнительные графики и диаграммы по итогам таблицы с результатами.
+
+def plot_training_history(hist, label):
+    acc = hist.history['accuracy']
+    val_acc = hist.history['val_accuracy']
+    loss = hist.history['loss']
+    val_loss = hist.history['val_loss']
+    epochs = range(1, len(acc)+1)
+
+    # Строим на отдельных подграфах
+    plt.figure(figsize=(12, 4))
+
+    plt.subplot(1,2,1)
+    plt.plot(epochs, acc, 'bo-', label='Train Acc')
+    plt.plot(epochs, val_acc, 'ro-', label='Val Acc')
+    plt.title(f"{label} Accuracy")
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    plt.subplot(1,2,2)
+    plt.plot(epochs, loss, 'bo-', label='Train Loss')
+    plt.plot(epochs, val_loss, 'ro-', label='Val Loss')
+    plt.title(f"{label} Loss")
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
+
+# Отобразим для каждой модели
+plot_training_history(history_dict['Baseline'], "Baseline")
+plot_training_history(history_dict['Pretrained'], "Pretrained")
+plot_training_history(history_dict['Modified'], "Modified")
+
+# Теперь построим общий барплот сравнения TestAccuracy (или F1)
+plt.figure(figsize=(8, 5))
+sns.barplot(data=results_df, x='Model', y='TestAccuracy')
+plt.title("Сравнение точности на тесте (TestAccuracy)")
+plt.ylim([0, 1])
+plt.show()
+
+# Аналогично можно построить сравнение F1
+plt.figure(figsize=(8, 5))
+sns.barplot(data=results_df, x='Model', y='F1')
+plt.title("Сравнение F1-меры на тесте")
+plt.ylim([0, 1])
+plt.show()
