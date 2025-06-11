@@ -221,3 +221,20 @@ test_generator = val_test_datagen.flow_from_directory(
 # Печать классов для проверки
 print("Классы в обучающих данных:", train_generator.class_indices)
 print("Классы в тестовых данных:", test_generator.class_indices)
+
+# Словарь классов
+class_indices = train_generator.class_indices
+print("Class indices:", class_indices)
+
+# Чтобы визуализировать пару изображений "до" и "после", можно получить batch из train_generator
+x_batch, y_batch = next(train_generator)  # Получаем пакет (X, Y)
+# x_batch у нас уже в виде float32 [0..1], но можно предположить "до" аугментации -> показать ещё raw
+
+# Выведем первые 4 изображения
+fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+for i in range(4):
+    axes[i].imshow(x_batch[i])
+    axes[i].set_title("Sample (augmented)")
+    axes[i].axis('off')
+plt.suptitle("Примеры изображений после предобработки/аугментации")
+plt.show()
