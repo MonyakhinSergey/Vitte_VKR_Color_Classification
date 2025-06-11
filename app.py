@@ -14,3 +14,29 @@ model = load_model(MODEL_PATH)
 # Классы цветов
 class_labels = ['black', 'blue', 'brown', 'green', 'grey', 'orange', 
                 'pink', 'purple', 'red', 'silver', 'white', 'yellow']
+
+# Функция для предсказания класса
+def predict_color(image_path):
+    img = image.load_img(image_path, target_size=(160, 160))
+    img_array = image.img_to_array(img) / 255.0
+    img_array = np.expand_dims(img_array, axis=0)
+    predictions = model.predict(img_array)
+    class_idx = np.argmax(predictions)
+    confidence = np.max(predictions)
+    return class_labels[class_idx], confidence
+
+# Работа с базой данных
+DB_PATH = "predictions.db"
+
+def init_db():
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS predictions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                image_path TEXT,
+                predicted_class TEXT,
+                confidence REAL,
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+    print("База данных инициализирована.")
