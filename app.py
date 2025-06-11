@@ -58,4 +58,28 @@ init_db()
 
 # Streamlit-приложение
 def main():
-    pass
+    st.title("Классификация изображений по цвету")
+    st.sidebar.title("Навигация")
+    menu = st.sidebar.radio("Выберите действие", ["Загрузить изображение", "Просмотреть статистику"])
+
+    if menu == "Загрузить изображение":
+        st.header("Загрузите изображение для классификации")
+        uploaded_file = st.file_uploader("Выберите файл изображения", type=["jpg", "jpeg", "png"])
+
+        if uploaded_file:
+            img = Image.open(uploaded_file)
+            st.image(img, caption="Загруженное изображение", use_column_width=True)
+
+            # Сохранение загруженного файла
+            temp_path = os.path.join("uploads", uploaded_file.name)
+            os.makedirs("uploads", exist_ok=True)
+            with open(temp_path, "wb") as f:
+                f.write(uploaded_file.getbuffer())
+
+            # Предсказание
+            predicted_class, confidence = predict_color(temp_path)
+            st.success(f"Цвет: {predicted_class} (уверенность: {confidence:.2f})")
+
+            # Сохранение предсказания в БД
+            save_prediction(temp_path, predicted_class, confidence)
+            st.info("Результат сохранен в базе данных.")
